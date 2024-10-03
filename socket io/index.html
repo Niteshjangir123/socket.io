@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.io Live Users</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Live Users</h1>
+    <table id="userTable" border="1">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Socket ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Users will be added here dynamically -->
+        </tbody>
+    </table>
+
+    <div id="userDetails" style="display:none;">
+        <h3>User Details</h3>
+        <p id="details"></p>
+    </div>
+
+    <script>
+        const socket = io();
+
+        // Simulate new user joining (replace with actual logic for form)
+        const userData = {
+            email: 'john@example.com',
+            name: 'John Doe'
+        };
+        socket.emit('new_user', userData);
+
+        // Listen for user list update
+        socket.on('user_list', function(liveUsers) {
+            const userTable = $('#userTable tbody');
+            userTable.empty();
+
+            for (const socketId in liveUsers) {
+                const user = liveUsers[socketId];
+                const row = `<tr data-socketid="${user.socketId}">
+                                <td>${user.email}</td>
+                                <td>${user.socketId}</td>
+                             </tr>`;
+                userTable.append(row);
+            }
+        });
+
+        // Fetch and display user details on click
+        $('#userTable').on('click', 'tr', function() {
+            const socketId = $(this).data('socketid');
+            $.get(`/user/${socketId}`, function(userData) {
+                $('#userDetails').show();
+                $('#details').text(JSON.stringify(userData));
+            });
+        });
+    </script>
+</body>
+</html>
